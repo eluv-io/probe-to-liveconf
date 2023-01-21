@@ -1,7 +1,8 @@
 const yargs = require("yargs");
 const fs = require('fs');
 const { exit } = require("process");
-const liveconfTemplates = require("./src/liveconf.templates");
+const { LiveConf } = require("./src/LiveConf");
+const { log } = require("console");
 
 
 const argv = yargs
@@ -32,29 +33,16 @@ const argv = yargs
   .alias('help', ['h'])
   .argv;
 
+// things to do
+// timebase probe to source_timescale
+// audio and video seg durations actual calculations for udp
+// force key int
 
 (async () => {
   let { probeFile, outputFile, nodeUrl, nodeId} = argv;
   let rawdata = fs.readFileSync(probeFile);
   let probe = JSON.parse(rawdata);
 
-  // fill in fieds specific to protocol
-  fileName = probe.format.filename;
-  if (fileName.startsWith("udp")) {
-    conf = liveconfTemplates.udp_template;
-  } else if (fileName.startsWith("rtmp")) {
-    conf = liveconfTemplates.rtmp_template;
-  } else {
-    console.log("I do not know what kind of stream this is, exiting.")
-    exit(1)
-  }
-
-  // fill in generic fields
-  conf.live_recording.fabric_config.ingress_node_api = nodeUrl || null;
-  conf.live_recording.fabric_config.ingress_node_id = nodeId || null;
-  conf.live_recording.recording_config.recording_params.description
-  conf.live_recording.recording_config.recording_params.origin_url = fileName;
-  conf.live_recording.recording_config.recording_params.description = `Ingest stream ${fileName}`;
-  conf.live_recording.recording_config.recording_params.name = `Ingest stream ${fileName}`;
-  console.log(JSON.stringify(conf, null, 2))
+  m = new LiveConf(probe, nodeId, nodeUrl);
+  console.log(m.generateLiveConf());
 })();
