@@ -64,7 +64,7 @@ module.exports = {
         origin_url: "",
         part_ttl: 2592000,
         playout_type: "live",
-        source_timescale: 16000,
+        source_timescale: null,
         xc_params: {
           audio_bitrate: 128000,
           audio_index: [

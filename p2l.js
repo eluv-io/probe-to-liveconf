@@ -34,9 +34,7 @@ const argv = yargs
   .argv;
 
 // things to do
-// timebase probe to source_timescale
 // audio and video seg durations actual calculations for udp
-// force key int
 
 (async () => {
   let { probeFile, outputFile, nodeUrl, nodeId} = argv;
