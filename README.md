@@ -40,3 +40,10 @@ ffprobe -v quiet -print_format json -show_format -show_streams udp://INGEST_IP:I
 ```bash
 ffprobe -v quiet -print_format json -show_format -show_streams rtmp://INGEST_IP:INGEST_PORT/rtmp/RTMP_KEY -listen 1
 ```
+
+### Limitations on frame rates
+Right now there are hardcoded values related to `audio_seg_duration_ts`, `video_seg_duration_ts` and `seg_duration`.
+
+Because of these values, the tool is limited to streams with whole frame rates or frame rates running EXACTLY at `30000/1001` and `60000/1001`
+
+I have not run into any other fractional framerate so I might be covering almost all use cases. I will update as needed if we run into anything new.
