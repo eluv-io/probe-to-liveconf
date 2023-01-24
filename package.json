@@ -1,8 +1,9 @@
 {
   "name": "probe-to-liveconf",
   "version": "1.0.0",
-  "description": "",
+  "description": "Eluvio ffprobe to live conf conversion tool.",
   "main": "p2l.js",
+  "author": "Gerald Hernandez",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,8 +11,7 @@
     "type": "git",
     "url": "git+https://github.com/qluvio/probe-to-liveconf.git"
   },
-  "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/qluvio/probe-to-liveconf/issues"
   },

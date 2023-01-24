@@ -43,6 +43,7 @@ class LiveConf {
     let conf = liveconfTemplate;
     let fileName = this.probeData.format.filename;
     let audioStream = this.getStreamDataForCodecType("audio");
+    
     // Fill in liveconf all formats have in common
     conf.live_recording.fabric_config.ingress_node_api = this.nodeUrl || null;
     conf.live_recording.fabric_config.ingress_node_id = this.nodeId || null;
