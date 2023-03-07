@@ -23,16 +23,22 @@ const argv = yargs
     type: 'string',
     demand: false,
   })
+  .option('calcAvSegDurations', {
+    description: "Have the tool automatically calculate and use audio_seg_duration_ts and video_seg_duration_ts",
+    alias: 'c',
+    type: 'boolean',
+    default: false,
+  })
   .alias('help', ['h'])
   .argv;
 
 // things to do
 // audio and video seg durations, actual calculations for udp
 (async () => {
-  let { probeFile, nodeUrl, nodeId} = argv;
+  let { probeFile, nodeUrl, nodeId, calcAvSegDurations} = argv;
   let rawdata = fs.readFileSync(probeFile);
   let probe = JSON.parse(rawdata);
 
-  lc = new LiveConf(probe, nodeId, nodeUrl);
+  lc = new LiveConf(probe, nodeId, nodeUrl, calcAvSegDurations);
   console.log(lc.generateLiveConf());
 })();

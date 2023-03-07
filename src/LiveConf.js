@@ -1,9 +1,10 @@
 const liveconfTemplate = require("./LiveConfTemplate");
 class LiveConf {
-  constructor(probeData, nodeId, nodeUrl) {
+  constructor(probeData, nodeId, nodeUrl, calcAvSegDurations) {
     this.probeData = probeData;
     this.nodeId = nodeId;
     this.nodeUrl = nodeUrl;
+    this.calcAvSegDurations = calcAvSegDurations;
   }
 
   probeKind() {
@@ -38,11 +39,22 @@ class LiveConf {
     }
   }
 
+  calcSegDuration() {
+    // I've only seen these two values. Herd coded for now...
+    if (this.isFrameRateWhole()) {
+      return "30";
+    }
+    return "30.03";
+  }
+
   generateLiveConf() {
     // gather required data
-    let conf = liveconfTemplate;
-    let fileName = this.probeData.format.filename;
-    let audioStream = this.getStreamDataForCodecType("audio");
+    var conf = liveconfTemplate;
+    var fileName = this.probeData.format.filename;
+    var audioStream = this.getStreamDataForCodecType("audio");
+    var sampleRate = parseInt(audioStream.sample_rate);
+    var segDuration = this.calcSegDuration();
+    var sourceTimescale;
     
     // Fill in liveconf all formats have in common
     conf.live_recording.fabric_config.ingress_node_api = this.nodeUrl || null;
@@ -53,28 +65,18 @@ class LiveConf {
     conf.live_recording.recording_config.recording_params.name = `Ingest stream ${fileName}`;
     conf.live_recording.recording_config.recording_params.xc_params.audio_index[0] = audioStream.index;
     conf.live_recording.recording_config.recording_params.xc_params.force_keyint = this.getForceKeyint();
+    conf.live_recording.recording_config.recording_params.xc_params.sample_rate = sampleRate;
+    conf.live_recording.recording_config.recording_params.xc_params.seg_duration = segDuration;
 
-    //fill in specifics
+    // Fill in specifics for protocol
     switch (this.probeKind()) {
       case "udp":
-        if (this.isFrameRateWhole()) {
-          conf.live_recording.recording_config.recording_params.xc_params.seg_duration = "30";
-        } else {
-          delete conf.live_recording.recording_config.recording_params.xc_params.seg_duration;
-          conf.live_recording.recording_config.recording_params.xc_params.audio_seg_duration_ts = 1428480;
-          conf.live_recording.recording_config.recording_params.xc_params.video_seg_duration_ts = 2702700;
-          conf.live_recording.recording_config.recording_params.source_timescale = 90000;
-        }
+        sourceTimescale = 90000;
+        conf.live_recording.recording_config.recording_params.source_timescale = sourceTimescale;
         break;
       case "rtmp":
-        delete conf.live_recording.recording_config.recording_params.xc_params.audio_seg_duration_ts;
-        delete conf.live_recording.recording_config.recording_params.xc_params.video_seg_duration_ts;
-        conf.live_recording.recording_config.recording_params.source_timescale = 16000;
-        if (this.isFrameRateWhole()) {
-          conf.live_recording.recording_config.recording_params.xc_params.seg_duration = "30";
-        } else {
-          conf.live_recording.recording_config.recording_params.xc_params.seg_duration = "30.03";
-        }
+        sourceTimescale = 16000
+        conf.live_recording.recording_config.recording_params.source_timescale = sourceTimescale;
         break;
       case "hls":
         console.log("HLS detected. Not yet implemented");
@@ -83,6 +85,16 @@ class LiveConf {
         console.log("Something we do not support detected.")
         break;
     }
+
+    // Fill in AV segdurations if specified. 
+    if (this.calcAvSegDurations) {
+      conf.live_recording.recording_config.recording_params.xc_params.audio_seg_duration_ts = segDuration * sampleRate;
+      conf.live_recording.recording_config.recording_params.xc_params.video_seg_duration_ts = segDuration * sourceTimescale;
+    } else {
+      delete conf.live_recording.recording_config.recording_params.xc_params.audio_seg_duration_ts;
+      delete conf.live_recording.recording_config.recording_params.xc_params.video_seg_duration_ts;
+    }
+
     return JSON.stringify(conf, null, 2);
   }
 }
