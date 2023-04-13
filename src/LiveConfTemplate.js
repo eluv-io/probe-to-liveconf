@@ -94,7 +94,7 @@ module.exports = {
           start_segment_str: "1",
           stream_id: -1,
           sync_audio_to_stream_id: -1,
-          video_bitrate: 14000000,
+          video_bitrate: null,
           video_seg_duration_ts: null,
           xc_type: 3
         }
