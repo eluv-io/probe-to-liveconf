@@ -1,10 +1,11 @@
 const liveconfTemplate = require("./LiveConfTemplate");
 class LiveConf {
-  constructor(probeData, nodeId, nodeUrl, calcAvSegDurations) {
+  constructor(probeData, nodeId, nodeUrl, calcAvSegDurations, overwriteOriginUrl) {
     this.probeData = probeData;
     this.nodeId = nodeId;
     this.nodeUrl = nodeUrl;
     this.calcAvSegDurations = calcAvSegDurations;
+    this.overwriteOriginUrl = overwriteOriginUrl;
   }
 
   probeKind() {
@@ -50,7 +51,7 @@ class LiveConf {
   generateLiveConf() {
     // gather required data
     var conf = liveconfTemplate;
-    var fileName = this.probeData.format.filename;
+    var fileName = this.overwriteOriginUrl || this.probeData.format.filename;
     var audioStream = this.getStreamDataForCodecType("audio");
     var sampleRate = parseInt(audioStream.sample_rate);
     var segDuration = this.calcSegDuration();

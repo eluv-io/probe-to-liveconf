@@ -29,16 +29,22 @@ const argv = yargs
     type: 'boolean',
     default: false,
   })
+  .option('overwriteOriginUrl', {
+    description: "Manually provide rtmp or udp origin url rather than use the url provided in the probe",
+    alias: 'd',
+    type: 'string',
+    default: null,
+  })
   .alias('help', ['h'])
   .argv;
 
 // things to do
 // audio and video seg durations, actual calculations for udp
 (async () => {
-  let { probeFile, nodeUrl, nodeId, calcAvSegDurations} = argv;
+  let { probeFile, nodeUrl, nodeId, calcAvSegDurations, overwriteOriginUrl} = argv;
   let rawdata = fs.readFileSync(probeFile);
   let probe = JSON.parse(rawdata);
 
-  lc = new LiveConf(probe, nodeId, nodeUrl, calcAvSegDurations);
+  lc = new LiveConf(probe, nodeId, nodeUrl, calcAvSegDurations, overwriteOriginUrl);
   console.log(lc.generateLiveConf());
 })();
