@@ -54,6 +54,7 @@ class LiveConf {
     var audioStream = this.getStreamDataForCodecType("audio");
     var sampleRate = parseInt(audioStream.sample_rate);
     var segDuration = this.calcSegDuration();
+    var videoStream = this.getStreamDataForCodecType("video");
     var sourceTimescale;
     
     // Fill in liveconf all formats have in common
@@ -67,6 +68,8 @@ class LiveConf {
     conf.live_recording.recording_config.recording_params.xc_params.force_keyint = this.getForceKeyint();
     conf.live_recording.recording_config.recording_params.xc_params.sample_rate = sampleRate;
     conf.live_recording.recording_config.recording_params.xc_params.seg_duration = segDuration;
+    conf.live_recording.recording_config.recording_params.xc_params.enc_height = videoStream.height;
+    conf.live_recording.recording_config.recording_params.xc_params.enc_width = videoStream.width;
 
     // Fill in specifics for protocol
     switch (this.probeKind()) {
@@ -77,6 +80,7 @@ class LiveConf {
       case "rtmp":
         sourceTimescale = 16000
         conf.live_recording.recording_config.recording_params.source_timescale = sourceTimescale;
+        conf.live_recording.recording_config.recording_params.xc_params.video_bitrate = parseInt(videoStream.bit_rate);
         break;
       case "hls":
         console.log("HLS detected. Not yet implemented");
