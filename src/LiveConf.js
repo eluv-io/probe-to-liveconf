@@ -1,11 +1,14 @@
-const liveconfTemplate = require("./LiveConfTemplate");
+const LiveconfTemplate = require("./LiveConfTemplate");
+const LadderTemplate = require("./LadderTemplate");
+
 class LiveConf {
-  constructor(probeData, nodeId, nodeUrl, calcAvSegDurations, overwriteOriginUrl) {
+  constructor(probeData, nodeId, nodeUrl, includeAVSegDurations, overwriteOriginUrl, ladderStart) {
     this.probeData = probeData;
     this.nodeId = nodeId;
     this.nodeUrl = nodeUrl;
-    this.calcAvSegDurations = calcAvSegDurations;
+    this.includeAVSegDurations = includeAVSegDurations;
     this.overwriteOriginUrl = overwriteOriginUrl;
+    this.ladderStart = ladderStart;
   }
 
   probeKind() {
@@ -41,7 +44,7 @@ class LiveConf {
   }
 
   calcSegDuration() {
-    // I've only seen these two values. Herd coded for now...
+    // I've only seen these two values. Hard coded for now...
     if (this.isFrameRateWhole()) {
       return "30";
     }
@@ -50,7 +53,7 @@ class LiveConf {
 
   generateLiveConf() {
     // gather required data
-    var conf = liveconfTemplate;
+    var conf = LiveconfTemplate;
     var fileName = this.overwriteOriginUrl || this.probeData.format.filename;
     var audioStream = this.getStreamDataForCodecType("audio");
     var sampleRate = parseInt(audioStream.sample_rate);
@@ -81,7 +84,6 @@ class LiveConf {
       case "rtmp":
         sourceTimescale = 16000
         conf.live_recording.recording_config.recording_params.source_timescale = sourceTimescale;
-        conf.live_recording.recording_config.recording_params.xc_params.video_bitrate = parseInt(videoStream.bit_rate);
         break;
       case "hls":
         console.log("HLS detected. Not yet implemented");
@@ -91,9 +93,52 @@ class LiveConf {
         break;
     }
 
+    switch(this.ladderStart) {
+      case "4k":
+        var ladder = []
+        conf.live_recording.recording_config.recording_params.ladder_specs.unshift(
+          LadderTemplate["4k"], 
+          LadderTemplate[1080], 
+          LadderTemplate[720], 
+          LadderTemplate[360]
+        );
+        conf.live_recording.recording_config.recording_params.xc_params.video_bitrate = LadderTemplate["4k"].bit_rate;
+        conf.live_recording.recording_config.recording_params.xc_params.enc_height = 2160;
+        conf.live_recording.recording_config.recording_params.xc_params.enc_width = 3840;
+
+        break;
+      case "1080":
+        conf.live_recording.recording_config.recording_params.ladder_specs.unshift(
+          LadderTemplate[1080], 
+          LadderTemplate[720], 
+          LadderTemplate[360]
+        );
+        conf.live_recording.recording_config.recording_params.xc_params.video_bitrate = LadderTemplate[1080].bit_rate;
+        conf.live_recording.recording_config.recording_params.xc_params.enc_height = 1080;
+        conf.live_recording.recording_config.recording_params.xc_params.enc_width = 1920;
+        break;
+      case "720":
+        conf.live_recording.recording_config.recording_params.ladder_specs.unshift( 
+          LadderTemplate[720], 
+          LadderTemplate[360]
+        );
+        conf.live_recording.recording_config.recording_params.xc_params.video_bitrate = LadderTemplate[720].bit_rate;
+        conf.live_recording.recording_config.recording_params.xc_params.enc_height = 720;
+        conf.live_recording.recording_config.recording_params.xc_params.enc_width = 1280;
+        break;
+      case "360": 
+        conf.live_recording.recording_config.recording_params.ladder_specs.unshift(LadderTemplate[360]);
+        conf.live_recording.recording_config.recording_params.ladder_specs.unshift(LadderTemplate[360]);
+        conf.live_recording.recording_config.recording_params.xc_params.video_bitrate = LadderTemplate[360].bit_rate;
+        conf.live_recording.recording_config.recording_params.xc_params.enc_height = 360;
+        conf.live_recording.recording_config.recording_params.xc_params.enc_width = 640;
+        break;
+    }
+
     // Fill in AV segdurations if specified. 
-    if (this.calcAvSegDurations) {
-      conf.live_recording.recording_config.recording_params.xc_params.audio_seg_duration_ts = segDuration * sampleRate;
+    if (this.includeAVSegDurations) {
+      // this value is hardcoded for now. 1428480 seems to cover the majority of cases. 
+      conf.live_recording.recording_config.recording_params.xc_params.audio_seg_duration_ts = 1428480;
       conf.live_recording.recording_config.recording_params.xc_params.video_seg_duration_ts = segDuration * sourceTimescale;
     } else {
       delete conf.live_recording.recording_config.recording_params.xc_params.audio_seg_duration_ts;
