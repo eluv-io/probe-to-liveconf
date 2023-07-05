@@ -23,8 +23,8 @@ const argv = yargs
     type: 'string',
     demand: false,
   })
-  .option('calcAvSegDurations', {
-    description: "Have the tool automatically calculate and use audio_seg_duration_ts and video_seg_duration_ts",
+  .option('includeAVSegDurations', {
+    description: "EXPERIMENTAL, have the tool provide audio_seg_duration_ts and video_seg_duration_ts",
     alias: 'c',
     type: 'boolean',
     default: false,
@@ -35,16 +35,23 @@ const argv = yargs
     type: 'string',
     default: null,
   })
+  .option('ladderStart', {
+    description: "Optional, provide where the top bitrate ladder starts, 4k, 1080, 720, 360, custom.",
+    alias: 'l',
+    type: 'string',
+    default: "4k",
+    choices: ["4k", "1080", "720", "360", "custom"]
+  })
   .alias('help', ['h'])
   .argv;
 
 // things to do
 // audio and video seg durations, actual calculations for udp
 (async () => {
-  let { probeFile, nodeUrl, nodeId, calcAvSegDurations, overwriteOriginUrl} = argv;
+  let { probeFile, nodeUrl, nodeId, includeAVSegDurations, overwriteOriginUrl, ladderStart} = argv;
   let rawdata = fs.readFileSync(probeFile);
   let probe = JSON.parse(rawdata);
 
-  lc = new LiveConf(probe, nodeId, nodeUrl, calcAvSegDurations, overwriteOriginUrl);
+  lc = new LiveConf(probe, nodeId, nodeUrl, includeAVSegDurations, overwriteOriginUrl, ladderStart);
   console.log(lc.generateLiveConf());
 })();

@@ -13,47 +13,11 @@ module.exports = {
         description: "",
         ladder_specs: [
           {
-            bit_rate: 14000000,
-            codecs: "avc1.640028,mp4a.40.2",
-            height: 2160,
-            media_type: 1,
-            representation: "2160@14000000",
-            stream_name: "video",
-            width: 3840
-          },
-          {
-            bit_rate: 9500000,
-            codecs: "avc1.640028,mp4a.40.2",
-            height: 1080,
-            media_type: 1,
-            representation: "1080@9500000",
-            stream_name: "video",
-            width: 1920
-          },
-          {
-            bit_rate: 4500000,
-            codecs: "avc1.640028,mp4a.40.2",
-            height: 720,
-            media_type: 1,
-            representation: "720@4500000",
-            stream_name: "video",
-            width: 1280
-          },
-          {
-            bit_rate: 520000,
-            codecs: "avc1.640028,mp4a.40.2",
-            height: 360,
-            media_type: 1,
-            representation: "360@520000",
-            stream_name: "video",
-            width: 640
-          },
-          {
-            bit_rate: 128000,
+            bit_rate: 192000,
             channels: 2,
             codecs: "mp4a.40.2",
             media_type: 2,
-            representation: "stereo@128000",
+            representation: "stereo@192000",
             stream_name: "audio"
           }
         ],
@@ -66,7 +30,7 @@ module.exports = {
         playout_type: "live",
         source_timescale: null,
         xc_params: {
-          audio_bitrate: 128000,
+          audio_bitrate: 192000,
           audio_index: [
             0,
             0,
@@ -78,10 +42,9 @@ module.exports = {
             0
           ],
           audio_seg_duration_ts: null,
-          ecodec: "libx264",
           ecodec2: "aac",
-          enc_height: 2160,
-          enc_width: 3840,
+          enc_height: null,
+          enc_width: null,
           filter_descriptor: "",
           force_keyint: null,
           format: "fmp4-segment",
