@@ -2,13 +2,14 @@ const LiveconfTemplate = require("./LiveConfTemplate");
 const LadderTemplate = require("./LadderTemplate");
 
 class LiveConf {
-  constructor(probeData, nodeId, nodeUrl, includeAVSegDurations, overwriteOriginUrl, ladderStart) {
+  constructor(probeData, nodeId, nodeUrl, includeAVSegDurations, overwriteOriginUrl, ladderStart, syncAudioToVideo) {
     this.probeData = probeData;
     this.nodeId = nodeId;
     this.nodeUrl = nodeUrl;
     this.includeAVSegDurations = includeAVSegDurations;
     this.overwriteOriginUrl = overwriteOriginUrl;
     this.ladderStart = ladderStart;
+    this.syncAudioToVideo = syncAudioToVideo
   }
 
   probeKind() {
@@ -51,6 +52,21 @@ class LiveConf {
     return "30.03";
   }
 
+  syncAudioToStreamIdValue() {
+    let sync_id = -1;
+    let videoStream = this.getStreamDataForCodecType("video");
+    switch (this.probeKind()) {
+      case "udp":
+        let video_id_hex = videoStream.id;
+        sync_id = parseInt(video_id_hex, 16) || -1; // default back to -1 if video id is undefined
+        break;
+      case "rtmp":
+        sync_id = videoStream.index || -1; // default back to -1 if index is undefined
+        break;
+    }
+    return sync_id;
+  }
+
   generateLiveConf() {
     // gather required data
     var conf = LiveconfTemplate;
@@ -75,6 +91,10 @@ class LiveConf {
     conf.live_recording.recording_config.recording_params.xc_params.enc_height = videoStream.height;
     conf.live_recording.recording_config.recording_params.xc_params.enc_width = videoStream.width;
 
+    if (this.syncAudioToVideo) {
+      conf.live_recording.recording_config.recording_params.xc_params.sync_audio_to_stream_id = this.syncAudioToStreamIdValue();
+    }
+
     // Fill in specifics for protocol
     switch (this.probeKind()) {
       case "udp":
@@ -93,13 +113,14 @@ class LiveConf {
         break;
     }
 
-    switch(this.ladderStart) {
+    switch (this.ladderStart) {
       case "4k":
         var ladder = []
         conf.live_recording.recording_config.recording_params.ladder_specs.unshift(
-          LadderTemplate["4k"], 
-          LadderTemplate[1080], 
-          LadderTemplate[720], 
+          LadderTemplate["4k"],
+          LadderTemplate[1080],
+          LadderTemplate[720],
+          LadderTemplate[540],
           LadderTemplate[360]
         );
         conf.live_recording.recording_config.recording_params.xc_params.video_bitrate = LadderTemplate["4k"].bit_rate;
@@ -109,8 +130,9 @@ class LiveConf {
         break;
       case "1080":
         conf.live_recording.recording_config.recording_params.ladder_specs.unshift(
-          LadderTemplate[1080], 
-          LadderTemplate[720], 
+          LadderTemplate[1080],
+          LadderTemplate[720],
+          LadderTemplate[540],
           LadderTemplate[360]
         );
         conf.live_recording.recording_config.recording_params.xc_params.video_bitrate = LadderTemplate[1080].bit_rate;
@@ -118,15 +140,25 @@ class LiveConf {
         conf.live_recording.recording_config.recording_params.xc_params.enc_width = 1920;
         break;
       case "720":
-        conf.live_recording.recording_config.recording_params.ladder_specs.unshift( 
-          LadderTemplate[720], 
+        conf.live_recording.recording_config.recording_params.ladder_specs.unshift(
+          LadderTemplate[720],
+          LadderTemplate[540],
           LadderTemplate[360]
         );
         conf.live_recording.recording_config.recording_params.xc_params.video_bitrate = LadderTemplate[720].bit_rate;
         conf.live_recording.recording_config.recording_params.xc_params.enc_height = 720;
         conf.live_recording.recording_config.recording_params.xc_params.enc_width = 1280;
         break;
-      case "360": 
+      case "540":
+        conf.live_recording.recording_config.recording_params.ladder_specs.unshift(
+          LadderTemplate[540],
+          LadderTemplate[360]
+        );
+        conf.live_recording.recording_config.recording_params.xc_params.video_bitrate = LadderTemplate[540].bit_rate;
+        conf.live_recording.recording_config.recording_params.xc_params.enc_height = 540;
+        conf.live_recording.recording_config.recording_params.xc_params.enc_width = 960;
+        break;
+      case "360":
         conf.live_recording.recording_config.recording_params.ladder_specs.unshift(LadderTemplate[360]);
         conf.live_recording.recording_config.recording_params.ladder_specs.unshift(LadderTemplate[360]);
         conf.live_recording.recording_config.recording_params.xc_params.video_bitrate = LadderTemplate[360].bit_rate;

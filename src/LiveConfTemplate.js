@@ -13,11 +13,11 @@ module.exports = {
         description: "",
         ladder_specs: [
           {
-            bit_rate: 192000,
+            bit_rate: 384000,
             channels: 2,
             codecs: "mp4a.40.2",
             media_type: 2,
-            representation: "stereo@192000",
+            representation: "audioaudio_aac@384000",
             stream_name: "audio"
           }
         ],
@@ -30,7 +30,7 @@ module.exports = {
         playout_type: "live",
         source_timescale: null,
         xc_params: {
-          audio_bitrate: 192000,
+          audio_bitrate: 384000,
           audio_index: [
             0,
             0,
