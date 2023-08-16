@@ -40,7 +40,13 @@ const argv = yargs
     alias: 'l',
     type: 'string',
     default: "4k",
-    choices: ["4k", "1080", "720", "360", "custom"]
+    choices: ["4k", "1080", "720", "540", "360", "custom"]
+  })
+  .option('syncAudioToVideo', {
+    description: "Force audio to sync with the video stream",
+    alias: 's',
+    type: 'boolean',
+    default: true,
   })
   .alias('help', ['h'])
   .argv;
@@ -48,10 +54,10 @@ const argv = yargs
 // things to do
 // audio and video seg durations, actual calculations for udp
 (async () => {
-  let { probeFile, nodeUrl, nodeId, includeAVSegDurations, overwriteOriginUrl, ladderStart} = argv;
+  let { probeFile, nodeUrl, nodeId, includeAVSegDurations, overwriteOriginUrl, ladderStart, syncAudioToVideo} = argv;
   let rawdata = fs.readFileSync(probeFile);
   let probe = JSON.parse(rawdata);
 
-  lc = new LiveConf(probe, nodeId, nodeUrl, includeAVSegDurations, overwriteOriginUrl, ladderStart);
+  lc = new LiveConf(probe, nodeId, nodeUrl, includeAVSegDurations, overwriteOriginUrl, ladderStart, syncAudioToVideo);
   console.log(lc.generateLiveConf());
 })();
