@@ -27,15 +27,19 @@ class LiveConf {
     return stream;
   }
 
-  isFrameRateWhole() {
+  getFrameRate() {
     let videoStream = this.getStreamDataForCodecType("video");
-    let frameRate = videoStream.r_frame_rate.split("/");
+    let frameRate = videoStream.r_frame_rate || videoStream.frame_rate;
+    return frameRate.split("/");
+  }
+
+  isFrameRateWhole() {
+    let frameRate = this.getFrameRate();
     return frameRate[1] == '1';
   }
 
   getForceKeyint() {
-    let videoStream = this.getStreamDataForCodecType("video");
-    let frameRate = videoStream.r_frame_rate.split("/");
+    let frameRate = this.getFrameRate();
     let roundedFrameRate = Math.round(frameRate[0] / frameRate[1]);
     if (roundedFrameRate > 30) {
       return roundedFrameRate;
